@@ -28,8 +28,7 @@ import move.AttackTransferMove;
 import move.PlaceArmiesMove;
 import debug.Log;
 
-public class BotStarter implements Bot 
-{
+public class BotStarter implements Bot {
 	@Override
 	/**
 	 * A method that returns which region the bot would like to start on, the pickable regions are stored in the BotState.
@@ -38,13 +37,12 @@ public class BotStarter implements Bot
 	 * 
 	 * We will call a class from strategies package to handle this
 	 */
-	public Region getStartingRegion(BotState state, Long timeOut)
-	{
+	public Region getStartingRegion(BotState state, Long timeOut) {
 		double rand = Math.random();
-		int r = (int) (rand*state.getPickableStartingRegions().size());
+		int r = (int) (rand * state.getPickableStartingRegions().size());
 		int regionId = state.getPickableStartingRegions().get(r).getId();
 		Region startingRegion = state.getFullMap().getRegion(regionId);
-		
+
 		return startingRegion;
 	}
 
@@ -54,28 +52,27 @@ public class BotStarter implements Bot
 	 * until he has no more armies left to place.
 	 * @return The list of PlaceArmiesMoves for one round
 	 */
-	public ArrayList<PlaceArmiesMove> getPlaceArmiesMoves(BotState state, Long timeOut) 
-	{
-		
+	public ArrayList<PlaceArmiesMove> getPlaceArmiesMoves(BotState state,
+			Long timeOut) {
+
 		ArrayList<PlaceArmiesMove> placeArmiesMoves = new ArrayList<PlaceArmiesMove>();
 		String myName = state.getMyPlayerName();
 		int armies = 2;
 		int armiesLeft = state.getStartingArmies();
 		LinkedList<Region> visibleRegions = state.getVisibleMap().getRegions();
-		
-		while(armiesLeft > 0)
-		{
+
+		while (armiesLeft > 0) {
 			double rand = Math.random();
-			int r = (int) (rand*visibleRegions.size());
+			int r = (int) (rand * visibleRegions.size());
 			Region region = visibleRegions.get(r);
-			
-			if(region.ownedByPlayer(myName))
-			{
-				placeArmiesMoves.add(new PlaceArmiesMove(myName, region, armies));
+
+			if (region.ownedByPlayer(myName)) {
+				placeArmiesMoves
+						.add(new PlaceArmiesMove(myName, region, armies));
 				armiesLeft -= armies;
 			}
 		}
-		
+
 		return placeArmiesMoves;
 	}
 
@@ -85,56 +82,81 @@ public class BotStarter implements Bot
 	 * more than 6 armies on it, and transfers if it has less than 6 and a neighboring owned region.
 	 * @return The list of PlaceArmiesMoves for one round
 	 */
-	public ArrayList<AttackTransferMove> getAttackTransferMoves(BotState state, Long timeOut) 
-	{
+	public ArrayList<AttackTransferMove> getAttackTransferMoves(BotState state,
+			Long timeOut) {
 		ArrayList<AttackTransferMove> attackTransferMoves = new ArrayList<AttackTransferMove>();
 		String myName = state.getMyPlayerName();
 		int armies = 5;
 		int maxTransfers = 10;
 		int transfers = 0;
-		
-		for(Region fromRegion : state.getVisibleMap().getRegions())
-		{
-			if(fromRegion.ownedByPlayer(myName)) //do an attack
-			{
+
+		for (Region fromRegion : state.getVisibleMap().getRegions()) {
+			// cycle through all our own regions
+			if (fromRegion.ownedByPlayer(myName)) {
 				ArrayList<Region> possibleToRegions = new ArrayList<Region>();
 				possibleToRegions.addAll(fromRegion.getNeighbors());
-				
-				while(!possibleToRegions.isEmpty())
-				{
-					double rand = Math.random();
-					int r = (int) (rand*possibleToRegions.size());
-					Region toRegion = possibleToRegions.get(r);
-					
-					if(!toRegion.getPlayerName().equals(myName) && fromRegion.getArmies() > 6) //do an attack
-					{
-						attackTransferMoves.add(new AttackTransferMove(myName, fromRegion, toRegion, armies));
-						break;
+
+				ArrayList<Region> viableEnemyCombatRegions = new ArrayList<Region>();
+
+				int friendlies = fromRegion.getArmies();
+
+				for (Region neighbor : possibleToRegions) {
+					// if neighbor is an enemy
+					if (!neighbor.ownedByPlayer("neutral")
+							&& !neighbor.ownedByPlayer(myName)) {
+						int enemies = neighbor.getArmies();
+						double ratio = enemies / friendlies;
+
+						// for future use
+						if (ratio > 0.7) {
+
+						}
+
+						viableEnemyCombatRegions.add(neighbor);
 					}
-					else if(toRegion.getPlayerName().equals(myName) && fromRegion.getArmies() > 1
-								&& transfers < maxTransfers) //do a transfer
+				}
+
+				if (viableEnemyCombatRegions.size() > 0) {
+					Log.log("Region " + fromRegion.getId() + " has "
+							+ viableEnemyCombatRegions.size()
+							+ " viable enemy regions to attack");
+				}
+				
+				while (!possibleToRegions.isEmpty()) {
+					double rand = Math.random();
+					int r = (int) (rand * possibleToRegions.size());
+					Region toRegion = possibleToRegions.get(r);
+
+					if (!toRegion.getPlayerName().equals(myName)
+							&& fromRegion.getArmies() > 6) // do an attack
 					{
-						attackTransferMoves.add(new AttackTransferMove(myName, fromRegion, toRegion, armies));
+						attackTransferMoves.add(new AttackTransferMove(myName,
+								fromRegion, toRegion, armies));
+						break;
+					} else if (toRegion.getPlayerName().equals(myName)
+							&& fromRegion.getArmies() > 1
+							&& transfers < maxTransfers) // do a transfer
+					{
+						attackTransferMoves.add(new AttackTransferMove(myName,
+								fromRegion, toRegion, armies));
 						transfers++;
 						break;
-					}
-					else
+					} else
 						possibleToRegions.remove(toRegion);
 				}
 			}
 		}
-		
+
 		return attackTransferMoves;
 	}
 
-	public static void main(String[] args)
-	{
+	public static void main(String[] args) {
 		new Log();
 		Log.log("Game Start");
-		
+
 		BotParser parser = new BotParser(new BotStarter());
 		parser.run();
-		
+
 		Log.close();
 	}
 
