@@ -93,6 +93,7 @@ public class BotStarter implements Bot {
 		for (Region fromRegion : state.getVisibleMap().getRegions()) {
 			// cycle through all our own regions
 			if (fromRegion.ownedByPlayer(myName)) {
+				
 				ArrayList<Region> possibleToRegions = new ArrayList<Region>();
 				possibleToRegions.addAll(fromRegion.getNeighbors());
 
@@ -101,6 +102,7 @@ public class BotStarter implements Bot {
 				int friendlies = fromRegion.getArmies();
 
 				for (Region neighbor : possibleToRegions) {
+					
 					// if neighbor is an enemy
 					if (!neighbor.ownedByPlayer("neutral")
 							&& !neighbor.ownedByPlayer(myName)) {
