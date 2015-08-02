@@ -20,6 +20,8 @@ package bot;
  * a new instance of your bot, and then the parser is started.
  */
 
+import history.HistoryEvent;
+
 import java.util.ArrayList;
 import java.util.LinkedList;
 
@@ -29,6 +31,13 @@ import move.PlaceArmiesMove;
 import debug.Log;
 
 public class BotStarter implements Bot {
+	
+	private ArrayList<Region> myStartingPickedRegions; //list of regions that this bot has chosen
+
+	public BotStarter() {
+		super();
+		myStartingPickedRegions = new ArrayList<Region>();
+	}
 	@Override
 	/**
 	 * A method that returns which region the bot would like to start on, the pickable regions are stored in the BotState.
@@ -42,7 +51,15 @@ public class BotStarter implements Bot {
 		int r = (int) (rand * state.getPickableStartingRegions().size());
 		int regionId = state.getPickableStartingRegions().get(r).getId();
 		Region startingRegion = state.getFullMap().getRegion(regionId);
-
+		myStartingPickedRegions.add(startingRegion);
+		
+		//create history event of us picking a region
+		PlaceArmiesMove move = new PlaceArmiesMove(state.getMyPlayerName(),
+				startingRegion, 0);
+		HistoryEvent event = new HistoryEvent(state, move);
+		BotParser.tracker.add(event);
+		//end event
+		
 		return startingRegion;
 	}
 
@@ -93,7 +110,7 @@ public class BotStarter implements Bot {
 		for (Region fromRegion : state.getVisibleMap().getRegions()) {
 			// cycle through all our own regions
 			if (fromRegion.ownedByPlayer(myName)) {
-				
+
 				ArrayList<Region> possibleToRegions = new ArrayList<Region>();
 				possibleToRegions.addAll(fromRegion.getNeighbors());
 
@@ -102,7 +119,7 @@ public class BotStarter implements Bot {
 				int friendlies = fromRegion.getArmies();
 
 				for (Region neighbor : possibleToRegions) {
-					
+
 					// if neighbor is an enemy
 					if (!neighbor.ownedByPlayer("neutral")
 							&& !neighbor.ownedByPlayer(myName)) {
@@ -119,11 +136,11 @@ public class BotStarter implements Bot {
 				}
 
 				if (viableEnemyCombatRegions.size() > 0) {
-					Log.log("Region " + fromRegion.getId() + " has "
-							+ viableEnemyCombatRegions.size()
-							+ " viable enemy regions to attack");
+//					Log.log("Region " + fromRegion.getId() + " has "
+//							+ viableEnemyCombatRegions.size()
+//							+ " viable enemy regions to attack");
 				}
-				
+
 				while (!possibleToRegions.isEmpty()) {
 					double rand = Math.random();
 					int r = (int) (rand * possibleToRegions.size());
@@ -154,8 +171,8 @@ public class BotStarter implements Bot {
 
 	public static void main(String[] args) {
 		new Log();
-		Log.log("Game Start");
-
+		Log.log("Game Begin");
+		
 		BotParser parser = new BotParser(new BotStarter());
 		parser.run();
 

@@ -32,14 +32,14 @@ public class AttackTransferMove extends Move {
 		this.armies = armies;
 		
 		if(toRegion.ownedByPlayer(playerName)) {
-			Log.log(playerName + " transferred " + armies + " armies to Region " + toRegion.getId() +
-					" which now contains " + toRegion.getArmies() + " total armies and is controlled by "
-					+ toRegion.getPlayerName());
+//			Log.log(playerName + " transferred " + armies + " armies to Region " + toRegion.getId() +
+//					" which now contains " + toRegion.getArmies() + " total armies and is controlled by "
+//					+ toRegion.getPlayerName());
 		}
 		else {
-			Log.log(playerName + " attacked with " + armies + " armies against " + toRegion.getId() + 
-					" which now contains " + toRegion.getArmies() + " total armies and is controlled by "
-					+ toRegion.getPlayerName());
+//			Log.log(playerName + " attacked with " + armies + " armies against " + toRegion.getId() + 
+//					" which now contains " + toRegion.getArmies() + " total armies and is controlled by "
+//					+ toRegion.getPlayerName());
 		}
 	}
 	

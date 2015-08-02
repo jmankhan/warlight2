@@ -10,26 +10,30 @@
 
 package bot;
 
+import history.HistoryTracker;
+
 import java.util.ArrayList;
 import java.util.Scanner;
 
+import debug.Log;
+
 import map.Region;
-import move.PlaceArmiesMove;
 import move.AttackTransferMove;
+import move.PlaceArmiesMove;
 
 public class BotParser {
 	
 	final Scanner scan;
-	
 	final Bot bot;
-	
 	BotState currentState;
+	public static HistoryTracker tracker;
 	
 	public BotParser(Bot bot)
 	{
 		this.scan = new Scanner(System.in);
 		this.bot = bot;
 		this.currentState = new BotState();
+		tracker = new HistoryTracker();
 	}
 	
 	public void run()

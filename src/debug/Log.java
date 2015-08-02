@@ -25,13 +25,26 @@ public class Log {
 	}
 	
 	/**
-	 * Writes parameter to file, appending a newline
+	 * Writes output to default log file, appending a newline
 	 * @param output
 	 */
 	public static void log(String output) {
 		writer.append(output + "\n");
 	}
-	
+
+	/**
+	 * Writes output to specified file, appending a newline
+	 * @param file
+	 * @param output
+	 */
+	public static void log(File file, String output) {
+		try {
+			PrintWriter pw = new PrintWriter(file);
+			pw.append(output + "\n");
+			pw.close();
+		} catch (FileNotFoundException e) {e.printStackTrace();}
+		
+	}
 	/**
 	 * Closes writer stream
 	 */

@@ -10,6 +10,8 @@
 
 package bot;
 
+import history.HistoryEvent;
+
 import java.util.ArrayList;
 
 import map.Map;
@@ -18,7 +20,6 @@ import map.SuperRegion;
 import move.AttackTransferMove;
 import move.Move;
 import move.PlaceArmiesMove;
-import debug.Log;
 
 public class BotState {
 	
@@ -36,7 +37,8 @@ public class BotState {
 	private int startingArmies; //number of armies the player can place on map
 	private int maxRounds;
 	private int roundNumber;
-
+	private int maxPickableRegions; //number of pickable regions at the start of the game
+	
 	private long totalTimebank; //total time that can be in the timebank
 	private long timePerMove; //the amount of time that is added to the timebank per requested move
 	
@@ -62,20 +64,20 @@ public class BotState {
 			opponentName = value;
 		else if(key.equals("max_rounds")) {
 			maxRounds = Integer.parseInt(value);
-			Log.log("Max rounds: " + maxRounds);
+//			Log.log("Max rounds: " + maxRounds);
 		}
 		else if(key.equals("timebank"))
 			totalTimebank = Long.parseLong(value);
 		else if(key.equals("time_per_move")) {
 			timePerMove = Long.parseLong(value);
-			Log.log("Time to move: " + timePerMove);
+//			Log.log("Time to move: " + timePerMove);
 		}
 		else if(key.equals("starting_armies")) 
 		{
 			startingArmies = Integer.parseInt(value);
 			roundNumber++; //next round
-			Log.log("");
-			Log.log("Starting Round " + roundNumber + " with " + startingArmies + " armies");
+//			Log.log("");
+//			Log.log("Starting Round " + roundNumber + " with " + startingArmies + " armies");
 		}
 	}
 	
@@ -99,7 +101,7 @@ public class BotState {
 				}
 			}
 
-			Log.log("Super regions: " + fullMap.getSuperRegions().size());
+//			Log.log("Super regions: " + fullMap.getSuperRegions().size());
 		}
 		else if(mapInput[1].equals("regions"))
 		{
@@ -117,7 +119,7 @@ public class BotState {
 				}
 			}
 			
-			Log.log("Regions: " + fullMap.getRegions().size());
+//			Log.log("Regions: " + fullMap.getRegions().size());
 		}
 		else if(mapInput[1].equals("neighbors"))
 		{
@@ -152,7 +154,7 @@ public class BotState {
 				}
 			}
 			
-			Log.log("Wastelands: " + wastelands.size());
+//			Log.log("Wastelands: " + wastelands.size());
 		}
 	}
 	
@@ -177,7 +179,7 @@ public class BotState {
 			ids += r.getId() + ", ";
 		}
 		
-		Log.log("Pickable starting regions: " + ids.substring(0, ids.length()-2));
+//		Log.log("Pickable starting regions: " + ids.substring(0, ids.length()-2));
 	}
 	
 	//visible regions are given to the bot with player and armies info
@@ -224,6 +226,9 @@ public class BotState {
 					int armies = Integer.parseInt(moveInput[i+3]);
 					move = new PlaceArmiesMove(playerName, region, armies);
 					i += 3;
+					
+					HistoryEvent event = new HistoryEvent(this, move);
+					BotParser.tracker.add(event);
 				}
 				else if(moveInput[i+1].equals("attack/transfer")) {
 					Region fromRegion = visibleMap.getRegion(Integer.parseInt(moveInput[i+2]));
@@ -238,6 +243,9 @@ public class BotState {
 					int armies = Integer.parseInt(moveInput[i+4]);
 					move = new AttackTransferMove(playerName, fromRegion, toRegion, armies);
 					i += 4;
+					
+					HistoryEvent event = new HistoryEvent(this, move);
+					BotParser.tracker.add(event);
 				}
 				else { //never happens
 					continue;
@@ -285,5 +293,4 @@ public class BotState {
 	public ArrayList<Region> getWasteLands(){
 		return wastelands;
 	}
-
 }

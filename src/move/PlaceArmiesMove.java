@@ -28,7 +28,7 @@ public class PlaceArmiesMove extends Move {
 		this.region = region;
 		this.armies = armies;
 		
-		Log.log(playerName + " placed " + armies + " armies at Region " + region.getId());
+//		Log.log(playerName + " placed " + armies + " armies at Region " + region.getId());
 	}
 	
 	/**
