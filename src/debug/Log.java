@@ -33,18 +33,19 @@ public class Log {
 	}
 
 	/**
-	 * Writes output to specified file, appending a newline
+	 * Writes output to specified file. Closes the stream after done writing
 	 * @param file
 	 * @param output
 	 */
 	public static void log(File file, String output) {
 		try {
 			PrintWriter pw = new PrintWriter(file);
-			pw.append(output + "\n");
+			pw.append(output);
 			pw.close();
 		} catch (FileNotFoundException e) {e.printStackTrace();}
 		
 	}
+	
 	/**
 	 * Closes writer stream
 	 */

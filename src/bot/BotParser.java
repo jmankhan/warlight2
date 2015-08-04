@@ -15,11 +15,10 @@ import history.HistoryTracker;
 import java.util.ArrayList;
 import java.util.Scanner;
 
-import debug.Log;
-
 import map.Region;
 import move.AttackTransferMove;
 import move.PlaceArmiesMove;
+import debug.Log;
 
 public class BotParser {
 	
@@ -34,15 +33,18 @@ public class BotParser {
 		this.bot = bot;
 		this.currentState = new BotState();
 		tracker = new HistoryTracker();
+		
 	}
 	
 	public void run()
 	{
+		
 		while(scan.hasNextLine())
 		{
 			String line = scan.nextLine().trim();
 			if(line.length() == 0) { continue; }
 			String[] parts = line.split(" ");
+			
 			if(parts[0].equals("pick_starting_region")) //pick which regions you want to start with
 			{
 				currentState.setPickableStartingRegions(parts);

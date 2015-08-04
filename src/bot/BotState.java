@@ -15,11 +15,13 @@ import history.HistoryEvent;
 import java.util.ArrayList;
 
 import map.Map;
+import map.MapMatrix;
 import map.Region;
 import map.SuperRegion;
 import move.AttackTransferMove;
 import move.Move;
 import move.PlaceArmiesMove;
+import debug.Log;
 
 public class BotState {
 	
@@ -154,8 +156,10 @@ public class BotState {
 				}
 			}
 			
-//			Log.log("Wastelands: " + wastelands.size());
+			new MapMatrix(this, fullMap.getMapCopy());
 		}
+		
+		
 	}
 	
 	//regions from which a player is able to pick his preferred starting region
@@ -174,12 +178,7 @@ public class BotState {
 				System.err.println("Unable to parse pickable regions " + e.getMessage());
 			}
 		}
-		String ids = "";
-		for(Region r:pickableStartingRegions) {
-			ids += r.getId() + ", ";
-		}
 		
-//		Log.log("Pickable starting regions: " + ids.substring(0, ids.length()-2));
 	}
 	
 	//visible regions are given to the bot with player and armies info

@@ -59,6 +59,7 @@ public class BotStarter implements Bot {
 		HistoryEvent event = new HistoryEvent(state, move);
 		BotParser.tracker.add(event);
 		//end event
+
 		
 		return startingRegion;
 	}
