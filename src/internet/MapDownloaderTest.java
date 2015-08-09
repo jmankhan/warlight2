@@ -30,5 +30,10 @@ public class MapDownloaderTest {
 		}
 		
 	}
+	
+	@Test
+	public void testFullMap() {
+		
+	}
 
 }

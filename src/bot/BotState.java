@@ -66,20 +66,16 @@ public class BotState {
 			opponentName = value;
 		else if(key.equals("max_rounds")) {
 			maxRounds = Integer.parseInt(value);
-//			Log.log("Max rounds: " + maxRounds);
 		}
 		else if(key.equals("timebank"))
 			totalTimebank = Long.parseLong(value);
 		else if(key.equals("time_per_move")) {
 			timePerMove = Long.parseLong(value);
-//			Log.log("Time to move: " + timePerMove);
 		}
 		else if(key.equals("starting_armies")) 
 		{
 			startingArmies = Integer.parseInt(value);
 			roundNumber++; //next round
-//			Log.log("");
-//			Log.log("Starting Round " + roundNumber + " with " + startingArmies + " armies");
 		}
 	}
 	
@@ -102,8 +98,6 @@ public class BotState {
 					System.err.println("Unable to parse SuperRegions");
 				}
 			}
-
-//			Log.log("Super regions: " + fullMap.getSuperRegions().size());
 		}
 		else if(mapInput[1].equals("regions"))
 		{
@@ -120,8 +114,6 @@ public class BotState {
 					System.err.println("Unable to parse Regions " + e.getMessage());
 				}
 			}
-			
-//			Log.log("Regions: " + fullMap.getRegions().size());
 		}
 		else if(mapInput[1].equals("neighbors"))
 		{

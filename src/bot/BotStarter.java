@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
+import map.MapMatrix;
 import map.Region;
 import move.AttackTransferMove;
 import move.PlaceArmiesMove;
@@ -177,12 +178,9 @@ public class BotStarter implements Bot {
 		Log.log("Game Begin");
 		
 		try {
-			Log.log(MapDownloader.parse(MapDownloader.getMap("http://theaigames.com/competitions/warlight-ai-challenge-2/games/55c6a03135ec1d4702e522b2/map")));
-//			Log.log(MapDownloader.getMap("http://theaigames.com/competitions/warlight-ai-challenge-2/games/55c6a03135ec1d4702e522b2/map"));
-//			Log.log(MapDownloader.getMap("http://theaigames.com/competitions/warlight-ai-challenge-2/games/55c69cc535ec1d4702e52285/map"));
-//			Log.log(MapDownloader.getMap("http://theaigames.com/competitions/warlight-ai-challenge-2/games/55c697dc35ec1d4702e52247/map"));
-//			Log.log(MapDownloader.getMap("http://theaigames.com/competitions/warlight-ai-challenge-2/games/55c6977335ec1d4702e52243/map"));
-//			Log.log(MapDownloader.getMap("http://theaigames.com/competitions/warlight-ai-challenge-2/games/55c67da935ec1d4702e520f4/map"));
+			String url = "http://theaigames.com/competitions/warlight-ai-challenge-2/games/55c66ad935ec1d4702e51fff/map";
+			new MapMatrix(new BotState(), MapDownloader.createMap(MapDownloader.getMap(url)));
+			
 		} catch (IOException e) {e.printStackTrace();}
 		
 		BotParser parser = new BotParser(new BotStarter());

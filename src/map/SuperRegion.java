@@ -11,7 +11,7 @@
 package map;
 import java.util.LinkedList;
 
-public class SuperRegion {
+public class SuperRegion implements Comparable<SuperRegion> {
 	
 	private int id;
 	private int armiesReward;
@@ -63,5 +63,17 @@ public class SuperRegion {
 	 */
 	public LinkedList<Region> getSubRegions() {
 		return subRegions;
+	}
+
+	/**
+	 * Used for sorting by id
+	 */
+	@Override
+	public int compareTo(SuperRegion r) {
+		if(this.id > r.id) 
+			return 1;
+		if(this.id == r.id)
+			return 0;
+		return -1;
 	}
 }

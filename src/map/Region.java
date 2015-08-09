@@ -12,8 +12,7 @@ package map;
 
 import java.util.LinkedList;
 
-
-public class Region {
+public class Region implements Comparable<Region> {
 	
 	private int id;
 	private LinkedList<Region> neighbors;
@@ -121,6 +120,18 @@ public class Region {
 	 */
 	public String getPlayerName() {
 			return playerName;
+	}
+
+	/**
+	 * Used for sorting by id
+	 */
+	@Override
+	public int compareTo(Region r) {
+		if(this.id > r.id) 
+			return 1;
+		if(this.id == r.id)
+			return 0;
+		return -1;
 	}
 
 }
