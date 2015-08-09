@@ -33,7 +33,7 @@ public class MapMatrix {
 
 				int[][] adjMatrix = createAdjacencyMatrix(regions);
 				int[][] matrix = createSuperAdjacencyMatrix(adjMatrix);
-				int[] degrees = createDegrees(adjMatrix);
+				int[] degrees = createDegreeMatrix(adjMatrix);
 				int[][] lapMatrix = createLaplacianMatrix(degrees, adjMatrix);
 				int[][] sLapMatrix = shiftLaplacianMatrix(lapMatrix);
 
@@ -84,51 +84,39 @@ public class MapMatrix {
 
 		int nSupers = fullMap.getSuperRegions().size();
 
-//		int[][] am = { 
-//				{ 0, 1, 1, 0, 0, 0, 0, 0, 0, 0 },
-//				{ 1, 0, 1, 0, 0, 0, 1, 0, 0, 0 },
-//				{ 1, 1, 0, 0, 0, 0, 0, 0, 0, 0 },
-//				{ 0, 0, 0, 0, 1, 1, 0, 0, 0, 0 },
-//				{ 0, 0, 0, 1, 0, 1, 1, 1, 0, 0 },
-//				{ 0, 0, 0, 1, 1, 0, 0, 0, 0, 1 },
-//				{ 0, 1, 0, 0, 1, 0, 0, 1, 1, 0 },
-//				{ 0, 0, 0, 0, 1, 0, 1, 0, 1, 1 },
-//				{ 0, 0, 0, 0, 0, 0, 1, 1, 0, 1 },
-//				{ 0, 0, 0, 0, 0, 1, 0, 1, 1, 0 } };
-
-		int[][] am = {
-				{ 0, 1, 1, 0, 0, 1},
-				{ 1, 0, 0, 1, 0, 0},
-				{ 1, 0, 0, 1, 1, 0},
-				{ 0, 1, 1, 0, 0, 0},
-				{ 0, 0, 1, 0, 0, 0},
-				{ 1, 0, 0, 0, 0, 0}
-		};
+		int[][] superRegions = new int[nSupers][];
+		for(int superIndex=0; superIndex<nSupers; superIndex++) {
+			//initialize an array to hold each subregion of a super region 
+			int numRegions = fullMap.getSuperRegions().get(superIndex).getSubRegions().size();
+			int[] region = new int[numRegions];
+			
+			//populate each sub region array with the id of each region
+			int count = 0;
+			while(count < numRegions) {
+				region[count] = fullMap.getSuperRegions().get(superIndex).getSubRegions().get(count).getId();
+				count++;
+			}
+			superRegions[superIndex] = region;
+		}
 		
-		//TODO: REPLACE THESE WITH MAP DATA
-		int[] r1 = { 1, 2 };
-		int[] r2 = { 3, 4 };
-		int[] r3 = { 5 };
-		int[] r4 = { 6 };
-		int[][] s = { r1, r2, r3, r4 };
+		int[][] sums = new int[superRegions.length][superRegions.length];
 
-		int[][] sums = new int[s.length][s.length];
-
-		for (int sup1 = 0; sup1 < s.length - 1; sup1++) {
-			for (int sup2 = sup1+1; sup2 < s.length; sup2++) {
-				for (int i = 0; i < s[sup1].length; i++) {
-					for (int j = 0; j < s[sup2].length; j++) {
-						int row = s[sup1][i];
-						int col = s[sup2][j];
-						sums[sup1][sup2] += am[row-1][col-1];
-						sums[sup2][sup1] += am[row-1][col-1];
+		for (int sup1 = 0; sup1 < superRegions.length - 1; sup1++) { //first super region being compared
+			for (int sup2 = sup1+1; sup2 < superRegions.length; sup2++) { //second super region being compared
+				for (int i = 0; i < superRegions[sup1].length; i++) { //i counts regions in super region 1
+					for (int j = 0; j < superRegions[sup2].length; j++) { //j counts regions in super region 2
+						int row = superRegions[sup1][i];
+						int col = superRegions[sup2][j];
+						sums[sup1][sup2] += adjMatrix[row-1][col-1];
+						sums[sup2][sup1] += adjMatrix[row-1][col-1];
 					}
 				}
 			}
 		}
 
-		printMatrix(sums, "sums");
-		// printMatrix(sums, "super_adjacency_matrix");
+		printMatrix(sums, "super_adjacency_matrix");
+		printMatrix(superRegions, "super_region_list");
+		
 		return null;
 	}
 
@@ -181,7 +169,7 @@ public class MapMatrix {
 	 *            amount of regions
 	 * @return int[] degrees where degree[n] = amount of connections
 	 */
-	public int[] createDegrees(int[][] adjMatrix) {
+	public int[] createDegreeMatrix(int[][] adjMatrix) {
 
 		int[] degrees = new int[adjMatrix[0].length];
 
