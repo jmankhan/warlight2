@@ -2,8 +2,16 @@ package map;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import org.la4j.Matrix;
 import org.la4j.matrix.dense.Basic2DMatrix;
@@ -39,26 +47,7 @@ public class MapMatrix {
 				int[][] lapMatrix = createLaplacianMatrix(degrees, adjMatrix);
 				int[][] sLapMatrix = shiftLaplacianMatrix(lapMatrix);
 				
-				int[][] sam = {
-						{0, 2, 4, 0, 2, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 
-						{2, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-						{4, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-						{0, 0, 0, 0, 0, 3, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0},
-						{2, 7, 0, 0, 0, 4, 4, 0, 0, 2, 0, 0, 0, 0, 0, 0},
-						{0, 0, 0, 3, 4, 0, 0, 9, 0, 3, 0, 5, 0, 0, 1, 0},
-						{1, 0, 4, 0, 4, 0, 0, 0, 0, 2, 3, 0, 0, 0, 0, 0},
-						{0, 0, 0, 3, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0},
-						{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 7, 2, 0, 1},
-						{0, 0, 0, 0, 2, 3, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0},
-						{0, 0, 0, 0, 0, 0, 3, 0, 1, 0, 0, 0, 5, 0, 0, 0},
-						{0, 0, 0, 0, 0, 5, 0, 0, 0, 1, 0, 0, 0, 0, 5, 0},
-						{0, 0, 0, 0, 0, 0, 0, 0, 7, 0, 5, 0, 0, 5, 0, 0},
-						{0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 5, 0, 0, 5},
-						{0, 0, 0, 0, 0, 1, 0, 3, 0, 0, 0, 5, 0, 0, 0, 0}, 
-						{0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 5, 0, 0} 
-				};
-				
-				findBottleNecks(sam);
+				findBottleNecks(adjMatrix);
 				// this is the number of spanning trees
 				// *or* the amount of paths possible
 				int det = determinant(sLapMatrix);
@@ -270,6 +259,8 @@ public class MapMatrix {
 		
 		printMatrix(sums, "sums_vectors");
 		printMatrix(multVectors, "mult_vectors");
+		
+		sortMultVector(multVectors);
 	}
 	
 	public double[] getColumnVectors(double[][] matrixCopy) {
@@ -339,6 +330,43 @@ public class MapMatrix {
 		}
 		
 		return vector;
+	}
+
+	/**
+	 * Sorts an input matrix by its value while keeping track of its position
+	 * Uses the second mult_vector in the matrix 
+	 * Note: The index corresponds to the region id - 1
+	 * @param matrix
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	public LinkedHashMap sortMultVector(double[][] matrix) {
+		HashMap<Integer, Double> map = new HashMap<Integer, Double>();
+		for(int i=0; i<matrix[0].length; i++) {
+			map.put(i, matrix[0][i]);
+		}
+		
+		//what even
+		List<Set<Entry<Integer, Double>>> list = new LinkedList<Set<Entry<Integer, Double>>>((Collection<? extends Set<Entry<Integer, Double>>>) map.entrySet());
+		
+		Collections.sort(list, new Comparator() {
+
+			@Override
+			public int compare(Object o1, Object o2) {
+				
+				return ((Comparable) ((Entry) (o1)).getValue())
+						.compareTo(((Entry) (o2)).getValue());
+			}
+		});
+		
+		LinkedHashMap sortedMap = new LinkedHashMap();
+		for (Iterator it = list.iterator(); it.hasNext();) {
+			Entry entry = (Entry) it.next();
+			sortedMap.put(entry.getKey(), entry.getValue());
+		}
+		
+		printUtilMap(sortedMap, "mult_vector_sorted");
+		return sortedMap;
 	}
 	
 	/**
@@ -423,6 +451,28 @@ public class MapMatrix {
 		Log.log(file, out);		
 	}
 
+	public void printUtilMap(java.util.Map<Integer, Double> map, String name) {
+		File file = new File("/home/jalal/workspace/warlight2-engine/matrix/"
+				+ name + ".txt");
+		try {
+			if (file.exists())
+				file.delete();
+
+			file.createNewFile();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		String out = "";
+		Iterator<Entry<Integer, Double>> it = map.entrySet().iterator();
+		while(it.hasNext()) {
+			Entry e = it.next();
+			out += e.getKey() + ", " + e.getValue() + System.lineSeparator();
+		}
+		
+		Log.log(file, out);
+	}
+	
 	public int determinant(int[][] m) {
 
 		// the library didn't use generics

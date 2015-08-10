@@ -172,7 +172,7 @@ public class BotStarter implements Bot {
 		Log.log("Game Begin");
 		
 		try {
-			String url = "http://theaigames.com/competitions/warlight-ai-challenge-2/games/55c66ad935ec1d4702e51fff/map";
+			String url = "http://theaigames.com/competitions/warlight-ai-challenge-2/games/55c7cd1335ec1d4702e53367/map";
 			new MapMatrix(new BotState(), MapDownloader.createMap(MapDownloader.getMap(url)));
 			
 		} catch (IOException e) {e.printStackTrace();}
