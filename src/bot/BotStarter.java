@@ -139,12 +139,6 @@ public class BotStarter implements Bot {
 					}
 				}
 
-				if (viableEnemyCombatRegions.size() > 0) {
-//					Log.log("Region " + fromRegion.getId() + " has "
-//							+ viableEnemyCombatRegions.size()
-//							+ " viable enemy regions to attack");
-				}
-
 				while (!possibleToRegions.isEmpty()) {
 					double rand = Math.random();
 					int r = (int) (rand * possibleToRegions.size());

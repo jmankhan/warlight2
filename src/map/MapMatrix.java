@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import org.la4j.Matrix;
 import org.la4j.matrix.dense.Basic2DMatrix;
 
 import bot.BotState;
@@ -32,11 +33,32 @@ public class MapMatrix {
 				int regions = fullMap.getRegions().size();
 
 				int[][] adjMatrix = createAdjacencyMatrix(regions);
-				int[][] matrix = createSuperAdjacencyMatrix(adjMatrix);
+				int[][] superAdjMatrix = createSuperAdjacencyMatrix(adjMatrix);
+				
 				int[] degrees = createDegreeMatrix(adjMatrix);
 				int[][] lapMatrix = createLaplacianMatrix(degrees, adjMatrix);
 				int[][] sLapMatrix = shiftLaplacianMatrix(lapMatrix);
-
+				
+				int[][] sam = {
+						{0, 2, 4, 0, 2, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 
+						{2, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+						{4, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+						{0, 0, 0, 0, 0, 3, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0},
+						{2, 7, 0, 0, 0, 4, 4, 0, 0, 2, 0, 0, 0, 0, 0, 0},
+						{0, 0, 0, 3, 4, 0, 0, 9, 0, 3, 0, 5, 0, 0, 1, 0},
+						{1, 0, 4, 0, 4, 0, 0, 0, 0, 2, 3, 0, 0, 0, 0, 0},
+						{0, 0, 0, 3, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0},
+						{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 7, 2, 0, 1},
+						{0, 0, 0, 0, 2, 3, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0},
+						{0, 0, 0, 0, 0, 0, 3, 0, 1, 0, 0, 0, 5, 0, 0, 0},
+						{0, 0, 0, 0, 0, 5, 0, 0, 0, 1, 0, 0, 0, 0, 5, 0},
+						{0, 0, 0, 0, 0, 0, 0, 0, 7, 0, 5, 0, 0, 5, 0, 0},
+						{0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 5, 0, 0, 5},
+						{0, 0, 0, 0, 0, 1, 0, 3, 0, 0, 0, 5, 0, 0, 0, 0}, 
+						{0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 5, 0, 0} 
+				};
+				
+				findBottleNecks(sam);
 				// this is the number of spanning trees
 				// *or* the amount of paths possible
 				int det = determinant(sLapMatrix);
@@ -214,6 +236,112 @@ public class MapMatrix {
 	}
 
 	/**
+	 * Finds the bottlenecks given an adjacency matrix. Both the super region adjacency matrix 
+	 * and the region adjacency matrix are applicable
+	 * @param matrix
+	 */
+	public void findBottleNecks(int[][] matrix) {
+		
+		int index = 0;
+		int power = 5; //the n in A^n
+		double[][] sums = new double[power][];
+		double[][] matrixCopy = new double[matrix.length][matrix.length]; 
+		
+		//copy matrix to matrixCopy
+		for(int i=0; i<matrix.length; i++) {
+			for(int j=0; j<matrix.length; j++) {
+				matrixCopy[i][j] = matrix[i][j];
+			}
+		}
+		
+		//find each row sum vector of A through A^n
+		while(index < power) {
+			double[] vector = getColumnVectors(matrixCopy);
+			sums[index] = vector;
+			matrixCopy = power(matrix, index+2);
+			index++;
+		}
+	
+		//find the mult vector matrix from the sumss. it should have power-1 dimensions
+		double[][] multVectors = new double[sums.length-1][sums.length-1];
+		for(int i=0; i<power-1; i++) {
+			multVectors[i] = this.getMultVector(sums[i], sums[i+1]);
+		}
+		
+		printMatrix(sums, "sums_vectors");
+		printMatrix(multVectors, "mult_vectors");
+	}
+	
+	public double[] getColumnVectors(double[][] matrixCopy) {
+		double[] columnVector = new double[matrixCopy.length];
+		for(int i=0; i<matrixCopy.length; i++) {
+			columnVector[i] = findRowSum(matrixCopy[i]);
+		}
+		return columnVector;
+	}
+	
+	/**
+	 * Finds the sum of all the integers in a given array
+	 * @param matrixCopy int[]
+	 * @return int sum
+	 */
+	public double findRowSum(double[] matrixCopy) {
+		double sum = 0.0;
+		for(double i : matrixCopy) {
+			sum += i;
+		}
+		
+		return sum;
+	}
+	
+	/**
+	 * Take this matrix to a power n
+	 * @param matrix A
+	 * @param n int
+	 * @return int[][] A^n
+	 */
+	public double[][] power(int[][] matrix, int n) {
+		double[][] nMatrix = new double[matrix.length][matrix.length];
+		for(int i=0; i<matrix.length; i++) {
+			for(int j=0; j<matrix[i].length; j++) {
+				nMatrix[i][j] = matrix[i][j];
+			}
+		}
+		
+		Matrix m = Matrix.from2DArray(nMatrix);
+		Matrix mn = m.power(n);
+		
+		double[][] matrixToN = new double[matrix.length][matrix.length];
+		for(int i=0; i<mn.rows(); i++) {
+			for(int j=0; j<mn.columns(); j++) {
+				matrixToN[i][j] = mn.get(i, j);
+			}
+		}
+		
+		return matrixToN;
+	}
+	
+	/**
+	 * Gets the mult vector by dividing 
+	 * @param column
+	 * @return
+	 */
+	public double[] getMultVector(double[] sums, double[] sums2) {
+		if(sums.length != sums2.length) {
+			Log.log("[MapMatrix:getMultVector] bad column lengths passed");
+		}
+		
+		int length = sums.length;
+		
+		double[] vector = new double[length];
+		for(int i=0; i<length; i++) {
+			vector[i] = sums2[i]/sums[i];
+		}
+		
+		return vector;
+	}
+	
+	/**
 	 * Print a 1 dimensional array to '../warlight2-engine/matrix/name.txt'
 	 * 
 	 * @param array
@@ -265,6 +393,34 @@ public class MapMatrix {
 		}
 
 		Log.log(file, out);
+	}
+	
+	/**
+	 * Prints a double[][] matrix to a given file
+	 * @param matrix
+	 * @param name
+	 */
+	public void printMatrix(double[][] matrix, String name) {
+		File file = new File("/home/jalal/workspace/warlight2-engine/matrix/"
+				+ name + ".txt");
+		try {
+			if (file.exists())
+				file.delete();
+
+			file.createNewFile();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		String out = "";
+		for (double x[] : matrix) {
+			for (double y : x) {
+				out += y + ", ";
+			}
+			out += System.lineSeparator();
+		}
+
+		Log.log(file, out);		
 	}
 
 	public int determinant(int[][] m) {
