@@ -16,42 +16,44 @@ import java.util.Set;
 import org.la4j.Matrix;
 import org.la4j.matrix.dense.Basic2DMatrix;
 
-import bot.BotState;
 import debug.Log;
 
 public class MapMatrix {
 
 	private Map fullMap;
-	private BotState state;
 
+	private int[][] adjMatrix, superAdjMatrix, lapMatrix, sLapMatrix;
+	private int[] degrees;
+
+	private boolean print;
+	
 	/**
 	 * Create a map based on the string provided Expected format:
 	 * region;owner;armies Runs on separate Thread
 	 * 
 	 * @param mapString
 	 */
-	public MapMatrix(BotState state, Map full) {
-		this.state = state;
+	public MapMatrix(Map full) {
 		this.fullMap = full;
-
+		this.print = true;
+		
 		Runnable runner = new Runnable() {
 
 			@Override
 			public void run() {
 				int regions = fullMap.getRegions().size();
 
-				int[][] adjMatrix = createAdjacencyMatrix(regions);
-				int[][] superAdjMatrix = createSuperAdjacencyMatrix(adjMatrix);
-				
-				int[] degrees = createDegreeMatrix(adjMatrix);
-				int[][] lapMatrix = createLaplacianMatrix(degrees, adjMatrix);
-				int[][] sLapMatrix = shiftLaplacianMatrix(lapMatrix);
-				
+				adjMatrix = createAdjacencyMatrix(regions);
+				superAdjMatrix = createSuperAdjacencyMatrix(adjMatrix);
+				degrees = createDegreeMatrix(adjMatrix);
+				lapMatrix = createLaplacianMatrix(degrees, adjMatrix);
+				sLapMatrix = shiftLaplacianMatrix(lapMatrix);
+
 				findBottleNecks(adjMatrix);
+				
 				// this is the number of spanning trees
 				// *or* the amount of paths possible
 				int det = determinant(sLapMatrix);
-				Log.log("determinant: " + det);
 			}
 
 		};
@@ -229,10 +231,10 @@ public class MapMatrix {
 	 * and the region adjacency matrix are applicable
 	 * @param matrix
 	 */
-	public void findBottleNecks(int[][] matrix) {
+	public LinkedHashMap findBottleNecks(int[][] matrix) {
 		
 		int index = 0;
-		int power = 5; //the n in A^n
+		int power = 2; //the n in A^n
 		double[][] sums = new double[power][];
 		double[][] matrixCopy = new double[matrix.length][matrix.length]; 
 		
@@ -251,7 +253,7 @@ public class MapMatrix {
 			index++;
 		}
 	
-		//find the mult vector matrix from the sumss. it should have power-1 dimensions
+		//find the mult vector matrix from the sums. it should have power-1 dimensions
 		double[][] multVectors = new double[sums.length-1][sums.length-1];
 		for(int i=0; i<power-1; i++) {
 			multVectors[i] = this.getMultVector(sums[i], sums[i+1]);
@@ -260,7 +262,7 @@ public class MapMatrix {
 		printMatrix(sums, "sums_vectors");
 		printMatrix(multVectors, "mult_vectors");
 		
-		sortMultVector(multVectors);
+		return sortMultVector(multVectors);
 	}
 	
 	public double[] getColumnVectors(double[][] matrixCopy) {
@@ -401,6 +403,9 @@ public class MapMatrix {
 	 * @param matrix
 	 */
 	public void printMatrix(int[][] matrix, String name) {
+		if(!this.print)
+			return;
+		
 		File file = new File("/home/jalal/workspace/warlight2-engine/matrix/"
 				+ name + ".txt");
 		try {
@@ -429,6 +434,9 @@ public class MapMatrix {
 	 * @param name
 	 */
 	public void printMatrix(double[][] matrix, String name) {
+		if(!this.print)
+			return;
+		
 		File file = new File("/home/jalal/workspace/warlight2-engine/matrix/"
 				+ name + ".txt");
 		try {
@@ -452,6 +460,10 @@ public class MapMatrix {
 	}
 
 	public void printUtilMap(java.util.Map<Integer, Double> map, String name) {
+		
+		if(!this.print)
+			return;
+		
 		File file = new File("/home/jalal/workspace/warlight2-engine/matrix/"
 				+ name + ".txt");
 		try {
@@ -487,4 +499,26 @@ public class MapMatrix {
 
 		return (int) Basic2DMatrix.from2DArray(m2).determinant();
 	}
+
+	public Map getFullMap() {
+		return fullMap;
+	}
+
+	public int[][] getAdjMatrix() {
+		return adjMatrix;
+	}
+
+	public int[][] getSuperAdjMatrix() {
+		return superAdjMatrix;
+	}
+
+	public int[][] getLapMatrix() {
+		return lapMatrix;
+	}
+
+	public int[][] getsLapMatrix() {
+		return sLapMatrix;
+	}
+	
+	
 }

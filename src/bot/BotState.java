@@ -147,8 +147,6 @@ public class BotState {
 					System.err.println("Unable to parse wastelands " + e.getMessage());
 				}
 			}
-			
-			new MapMatrix(this, fullMap.getMapCopy());
 		}
 		
 		
@@ -170,7 +168,6 @@ public class BotState {
 				System.err.println("Unable to parse pickable regions " + e.getMessage());
 			}
 		}
-		
 	}
 	
 	//visible regions are given to the bot with player and armies info
@@ -219,7 +216,6 @@ public class BotState {
 					i += 3;
 					
 					HistoryEvent event = new HistoryEvent(this, move);
-					BotParser.tracker.add(event);
 				}
 				else if(moveInput[i+1].equals("attack/transfer")) {
 					Region fromRegion = visibleMap.getRegion(Integer.parseInt(moveInput[i+2]));
@@ -234,9 +230,6 @@ public class BotState {
 					int armies = Integer.parseInt(moveInput[i+4]);
 					move = new AttackTransferMove(playerName, fromRegion, toRegion, armies);
 					i += 4;
-					
-					HistoryEvent event = new HistoryEvent(this, move);
-					BotParser.tracker.add(event);
 				}
 				else { //never happens
 					continue;

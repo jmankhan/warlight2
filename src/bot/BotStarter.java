@@ -20,12 +20,11 @@ package bot;
  * a new instance of your bot, and then the parser is started.
  */
 
-import history.HistoryEvent;
-import internet.MapDownloader;
-
-import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import map.MapMatrix;
 import map.Region;
@@ -35,12 +34,11 @@ import debug.Log;
 
 public class BotStarter implements Bot {
 	
-	private ArrayList<Region> myStartingPickedRegions; //list of regions that this bot has chosen
 
 	public BotStarter() {
 		super();
-		myStartingPickedRegions = new ArrayList<Region>();
 	}
+	
 	@Override
 	/**
 	 * A method that returns which region the bot would like to start on, the pickable regions are stored in the BotState.
@@ -50,20 +48,38 @@ public class BotStarter implements Bot {
 	 * We will call a class from strategies package to handle this
 	 */
 	public Region getStartingRegion(BotState state, Long timeOut) {
-		double rand = Math.random();
-		int r = (int) (rand * state.getPickableStartingRegions().size());
-		int regionId = state.getPickableStartingRegions().get(r).getId();
-		Region startingRegion = state.getFullMap().getRegion(regionId);
-		myStartingPickedRegions.add(startingRegion);
-		
-		//create history event of us picking a region
-		PlaceArmiesMove move = new PlaceArmiesMove(state.getMyPlayerName(),
-				startingRegion, 0);
-		HistoryEvent event = new HistoryEvent(state, move);
-		BotParser.tracker.add(event);
-		//end event
 
+		MapMatrix mapMatrix = new MapMatrix(state.getFullMap());
+		LinkedHashMap<Integer, Double> multVector = mapMatrix.findBottleNecks(mapMatrix.getAdjMatrix());
 		
+		ArrayList<Region> pickable = state.getPickableStartingRegions();
+		ArrayList<Integer> ids = new ArrayList<Integer>();
+		for(Region r:pickable) {
+			ids.add(r.getId());
+		}
+		
+		Region startingRegion = pickable.get(0);
+		
+		Set<Integer> keys = multVector.keySet();
+		Integer[] k = keys.toArray(new Integer[keys.size()]);
+		
+		String pickall = "";
+		for(Region r:pickable)
+			pickall += r.getId() + ", ";
+		Log.log("pickable regions: " + pickall);
+		
+		//TODO: finds the first region correctly, the rest are backwards
+		for(int i=0; i<k.length; i++) {
+			for(int j=0; j<pickable.size(); j++) {
+				if(k[i] == pickable.get(j).getId()) {
+					startingRegion = pickable.get(j);
+					Log.log("picked region: " + startingRegion.getId());
+					return startingRegion;
+				}
+			}
+		}
+
+		Log.log("picked region: " + startingRegion.getId());
 		return startingRegion;
 	}
 
@@ -170,12 +186,6 @@ public class BotStarter implements Bot {
 	public static void main(String[] args) {
 		new Log();
 		Log.log("Game Begin");
-		
-		try {
-			String url = "http://theaigames.com/competitions/warlight-ai-challenge-2/games/55c7cd1335ec1d4702e53367/map";
-			new MapMatrix(new BotState(), MapDownloader.createMap(MapDownloader.getMap(url)));
-			
-		} catch (IOException e) {e.printStackTrace();}
 		
 		BotParser parser = new BotParser(new BotStarter());
 		parser.run();
