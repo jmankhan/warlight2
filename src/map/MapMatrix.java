@@ -229,6 +229,7 @@ public class MapMatrix {
 	/**
 	 * Finds the bottlenecks given an adjacency matrix. Both the super region adjacency matrix 
 	 * and the region adjacency matrix are applicable
+	 * The regions in the key are regionId-1
 	 * @param matrix
 	 */
 	public LinkedHashMap findBottleNecks(int[][] matrix) {

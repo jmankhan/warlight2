@@ -61,19 +61,24 @@ public class BotStarter implements Bot {
 		Region startingRegion = pickable.get(0);
 		
 		Set<Integer> keys = multVector.keySet();
-		Integer[] k = keys.toArray(new Integer[keys.size()]);
+		Integer[] desiredRegions = keys.toArray(new Integer[keys.size()]);
 		
 		String pickall = "";
 		for(Region r:pickable)
 			pickall += r.getId() + ", ";
 		Log.log("pickable regions: " + pickall);
-		
-		//TODO: finds the first region correctly, the rest are backwards
-		for(int i=0; i<k.length; i++) {
-			for(int j=0; j<pickable.size(); j++) {
-				if(k[i] == pickable.get(j).getId()) {
-					startingRegion = pickable.get(j);
-					Log.log("picked region: " + startingRegion.getId());
+
+		//loop through desired regions backwards (so it is now best to worst)
+		for(int regionIndex=desiredRegions.length-1; regionIndex>=0; regionIndex--) {
+			
+			//loop through pickable regions (direction is arbitrary)
+			for(int pickableIndex=0; pickableIndex<pickable.size(); pickableIndex++) {
+				
+				//on the first occurrence of a desired region in the pickable list, pick it
+				//remember that the desired region's id is the actual region id - 1
+				if(desiredRegions[regionIndex]+1 == pickable.get(pickableIndex).getId()) {
+					startingRegion = pickable.get(pickableIndex);
+					Log.log("picked region: " + startingRegion.getId() + ", the " + regionIndex + " best region");
 					return startingRegion;
 				}
 			}
