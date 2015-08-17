@@ -23,7 +23,6 @@ package bot;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import map.MapMatrix;
@@ -49,43 +48,43 @@ public class BotStarter implements Bot {
 	 */
 	public Region getStartingRegion(BotState state, Long timeOut) {
 
+		//find most valuable super regions
 		MapMatrix mapMatrix = new MapMatrix(state.getFullMap());
-		LinkedHashMap<Integer, Double> multVector = mapMatrix.findBottleNecks(mapMatrix.getAdjMatrix());
+		LinkedHashMap<Integer, Double> multVector = mapMatrix.findBottleNecks(mapMatrix.getSuperAdjMatrix());
 		
+		//get regions we are allowed to pick
 		ArrayList<Region> pickable = state.getPickableStartingRegions();
-		ArrayList<Integer> ids = new ArrayList<Integer>();
+		String pickall = "Available super regions\n";
 		for(Region r:pickable) {
-			ids.add(r.getId());
+			pickall += r.getSuperRegion().getId() + "\n";
 		}
-		
+		Log.log(pickall);
+		//initialize a starting region to the first region, if there is an error
+		//we will at least have a region to pick
 		Region startingRegion = pickable.get(0);
 		
 		Set<Integer> keys = multVector.keySet();
-		Integer[] desiredRegions = keys.toArray(new Integer[keys.size()]);
+		Integer[] desired = keys.toArray(new Integer[keys.size()]);
 		
-		String pickall = "";
-		for(Region r:pickable)
-			pickall += r.getId() + ", ";
-		Log.log("pickable regions: " + pickall);
-
-		//loop through desired regions backwards (so it is now best to worst)
-		for(int regionIndex=desiredRegions.length-1; regionIndex>=0; regionIndex--) {
+		//search through all the pickable regions to see if they belong to 
+		//a super region we want
+		for(int index=0; index<desired.length; index++) {
 			
-			//loop through pickable regions (direction is arbitrary)
-			for(int pickableIndex=0; pickableIndex<pickable.size(); pickableIndex++) {
+			for(Region region : pickable) {
+				//if the region is in the most desirable and available super region,
+				//pick it
+				if(region.getSuperRegion().getId() == desired[index]) {
 				
-				//on the first occurrence of a desired region in the pickable list, pick it
-				//remember that the desired region's id is the actual region id - 1
-				if(desiredRegions[regionIndex]+1 == pickable.get(pickableIndex).getId()) {
-					startingRegion = pickable.get(pickableIndex);
-					Log.log("picked region: " + startingRegion.getId() + ", the " + regionIndex + " best region");
+					//return the region so it doesn't check all the regions available
+					startingRegion = region;
+					Log.log("picked region: " + startingRegion.getId() + " from super region: " + startingRegion.getSuperRegion().getId());
 					return startingRegion;
 				}
 			}
 		}
-
-		Log.log("picked region: " + startingRegion.getId());
-		return startingRegion;
+		
+		//in case there is an error, return the first pickable region
+		return pickable.get(0);
 	}
 
 	@Override

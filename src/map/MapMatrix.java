@@ -41,10 +41,8 @@ public class MapMatrix {
 
 			@Override
 			public void run() {
-				int regions = fullMap.getRegions().size();
-
-				adjMatrix = createAdjacencyMatrix(regions);
-				superAdjMatrix = createSuperAdjacencyMatrix(adjMatrix);
+				adjMatrix = createAdjacencyMatrix(fullMap);
+				superAdjMatrix = createSuperAdjacencyMatrix(fullMap);
 				degrees = createDegreeMatrix(adjMatrix);
 				lapMatrix = createLaplacianMatrix(degrees, adjMatrix);
 				sLapMatrix = shiftLaplacianMatrix(lapMatrix);
@@ -68,8 +66,9 @@ public class MapMatrix {
 	 *            amount of regions
 	 * @return int[x][y] where x and y are tile numbers
 	 */
-	public int[][] createAdjacencyMatrix(int regions) {
+	public int[][] createAdjacencyMatrix(Map fullMap) {
 
+		int regions = fullMap.getRegions().size();
 		int[][] adjMatrix = new int[regions][regions];
 
 		// 1 signifies a connection
@@ -93,25 +92,32 @@ public class MapMatrix {
 		return adjMatrix;
 	}
 
-	public int[][] createSuperAdjacencyMatrix(int[][] adjMatrix) {
+	/**
+	 * Create an adjacency matrix 
+	 * @param adjMatrix
+	 * @return
+	 */
+	public int[][] createSuperAdjacencyMatrix(Map fullMap) {
 
 		int nSupers = fullMap.getSuperRegions().size();
-
+		
 		int[][] superRegions = new int[nSupers][];
 		for(int superIndex=0; superIndex<nSupers; superIndex++) {
+			
 			//initialize an array to hold each subregion of a super region 
 			int numRegions = fullMap.getSuperRegions().get(superIndex).getSubRegions().size();
-			int[] region = new int[numRegions];
+			int[] regionIds = new int[numRegions];
 			
 			//populate each sub region array with the id of each region
 			int count = 0;
 			while(count < numRegions) {
-				region[count] = fullMap.getSuperRegions().get(superIndex).getSubRegions().get(count).getId();
+				regionIds[count] = fullMap.getSuperRegions().get(superIndex).getSubRegions().get(count).getId();
 				count++;
 			}
-			superRegions[superIndex] = region;
+			superRegions[superIndex] = regionIds;
 		}
 		
+		//the sums matrix, an intermediate step in making the adjacency matrix
 		int[][] sums = new int[superRegions.length][superRegions.length];
 
 		for (int sup1 = 0; sup1 < superRegions.length - 1; sup1++) { //first super region being compared
@@ -120,7 +126,7 @@ public class MapMatrix {
 					for (int j = 0; j < superRegions[sup2].length; j++) { //j counts regions in super region 2
 						int row = superRegions[sup1][i];
 						int col = superRegions[sup2][j];
-						sums[sup1][sup2] += adjMatrix[row-1][col-1];
+						sums[sup1][sup2] += adjMatrix[row-1][col-1]; //-1 to align region ids with engine
 						sums[sup2][sup1] += adjMatrix[row-1][col-1];
 					}
 				}
@@ -130,7 +136,7 @@ public class MapMatrix {
 		printMatrix(sums, "super_adjacency_matrix");
 		printMatrix(superRegions, "super_region_list");
 		
-		return null;
+		return sums;
 	}
 
 	/**
@@ -361,6 +367,7 @@ public class MapMatrix {
 						.compareTo(((Entry) (o2)).getValue());
 			}
 		});
+		Collections.reverse(list);
 		
 		LinkedHashMap sortedMap = new LinkedHashMap();
 		for (Iterator it = list.iterator(); it.hasNext();) {
